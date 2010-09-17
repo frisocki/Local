@@ -1,0 +1,11 @@
+defscrollback 1024
+startup_message off
+hardstatus on
+#hardstatus alwayslastline
+vbell off
+
+#caption always "%n(%t) : %C"
+#caption always "%{= kw}%?%-Lw%?%{+b kw}%n*%t%f %?(%u)%?%{= kw}%?%+Lw%?"
+#caption always "%{Yb} %{k}|%{G} %{k}|%{W} %-w%{+b}%n %t%{-b}%+w"
+
+hardstatus alwayslastline '%{= M} %H%{= G} %= %{= w}%-w%{+b r}[%n*%t]%{-b r}%{w}%+w %= %{c}%d %D %{B}%c'
