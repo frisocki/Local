@@ -1,11 +1,5 @@
 " Vim 
-" An example for a gvimrc file.
-" The commands in this are executed when the GUI is started.
-"
-" To use it, copy it to
-"     for Unix and OS/2:  ~/.gvimrc
-"             for Amiga:  s:.gvimrc
-"  for MS-DOS and Win32:  $VIM\_gvimrc
+set nocompatible
 
 "set runtimepath=~/.vim,~/usr/share/vim/vim70,$VIMRUNTIME
  
@@ -43,7 +37,6 @@ set textwidth=78
  
 "Always indent/outdent to the nearest tabstop"
  
-set nocompatible
 set paste
 set pastetoggle=<f11>
  
