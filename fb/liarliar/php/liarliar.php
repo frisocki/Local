@@ -1,0 +1,68 @@
+<?php
+
+  function getGroup($name, $groups) {
+    if (array_key_exists($name, $groups[1])) {
+      return 1;
+    }
+    elseif (array_key_exists($name, $groups[2])) {
+      return 2;
+    }
+    else {
+      return 0;
+    }
+  }
+
+  function getOtherGroup($groupId) {
+    switch ($groupId) {
+      case 0: return 0;
+      case 1: return 2;
+      case 2: return 1;
+    }
+  }
+
+  $data = file($argv[1]);
+
+  $members = $data[0];
+
+  $groups = array(
+    1 => array(),
+    2 => array(),
+  );
+
+  $lineNumber = 1;
+  for ($i = 1; $i <= $members; $i++) {
+    $vet = preg_split('/\s+/', $data[$lineNumber++], 2);
+
+    $vetGroup      = getGroup($vet[0], $groups);
+    $accuseesGroup = getOtherGroup($vetGroup);
+
+    $accusees = array();
+    for ($j = 1; $j <= $vet[1]; $j++) {
+      $accusee = trim($data[$lineNumber++]);
+
+      // The veteran has not be assigned a group yet,
+      // attempt to get the group of the accusee.
+      if ($accuseesGroup == 0) {
+        $accuseesGroup = getGroup($accusee, $groups);
+        $vetGroup      = getOtherGroup($accuseesGroup);
+      }
+
+      // If we still do not have group assignments,
+      // then this is the 1st record, make a direct
+      // group assigment.
+      if ($accuseesGroup == 0) {
+        $vetGroup      = 1;
+        $accuseesGroup = 2;
+      }
+
+      $groups[$accuseesGroup][$accusee][] = $i;
+    }
+
+    // Assign the veteran to a group.
+    $groups[$vetGroup][$vet[0]][] = $i; 
+  }
+
+  $groupOneCount = count($groups[1]);
+  $groupTwoCount = count($groups[2]);
+  print $groupOneCount > $groupTwoCount ? "$groupOneCount $groupTwoCount\n" : "$groupTwoCount $groupOneCount\n";
+
