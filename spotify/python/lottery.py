@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from decimal import *
+import math
   
 def choose(n, r):
   i = Decimal(1);
@@ -17,33 +18,17 @@ if __name__ == '__main__':
   tickets = int(numbers[2])
   group   = int(numbers[3])
 
-  if group > winners:
-    print 0.0
-  else:
-    people  = people
-    winners = winners
-    nwinners = winners
+  print choose(4,3)
 
-    non_winners = people - winners
-    print "non-winners", non_winners
-  
-    if non_winners < winners:
-      nwinners = non_winners
-  #  nwinners    = non_winners
-  #  non_winners = winners
+  combos = Decimal(choose(people, winners))
+
+  for i in range(group, 0, -1):
+    print i
+    winning_people = people - i
+    winning_group  = winners - i
+    if winning_group == 0:
+      winning_picks = people
     else:
-      non_winners += winners - group
-
-    print "people", people
-    print "winners", winners
-    print "non-winners", non_winners
-
-    print non_winners, "choose" , nwinners
-    print people, "choose", winners
-    # Call the function with users variables
-    #print choose(5, 5)
-    #print choose(4, 3)
-  
-    r = 1 - Decimal(choose(non_winners, nwinners)) / Decimal(choose(people, winners))
-    print r
-    #print("%.10f" % r)
+      winning_picks = Decimal(choose(winning_people, winning_group))
+    print "winning picks:", winning_picks
+    
