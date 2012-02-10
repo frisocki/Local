@@ -12,8 +12,10 @@ public class Dream {
         Kattio io = new Kattio(System.in, System.out);
         
         int lines = io.getInt();
+        //System.err.println("[lines] " + lines);
        
         int dreamOffset  = 0;
+        int dreamEvents  = 0;
         
         for (int i = 0; i < lines; i++) {
             String type = io.getWord();
@@ -21,7 +23,8 @@ public class Dream {
             
             if (type.equals("E")) {
                 dreamOffset = 0;
-                ArrayList event = new ArrayList<String>();
+                
+                ArrayList<String> event = new ArrayList<String>();
                 
                 event.add(io.getWord());
                 event.add("r");
@@ -29,26 +32,30 @@ public class Dream {
                 
                 eventCounter++;
 
-                if (eventCounter > 29) {
-                    events.remove(eventCounter - 30);
+                if (eventCounter > 40) {
+                    //System.err.println("[eventCounter] " + eventCounter);
+                    //System.err.println("[eventCounter - 31 " + (eventCounter - 31));
+                    events.remove(0);
                 }
             }
             else if (type.equals("D")) {
                 int dream = io.getInt();
                 
-                int lastIndex = events.size() - (1 + dreamOffset);
-                for (int j = dream; j > 0; j--) {
-                    //System.err.println(lastIndex + " to d.");
-
-                    if (lastIndex >= 0) {
-                        ArrayList<String> event = events.get(lastIndex--);
-                        event.set(1, "d");
-                        dreamOffset++;
+                for (int j = events.size() - 1; j >= 0; j--) {
+                    
+                    if (dream < 1) {
+                        break;
                     }
-                    //lastIndex--;
+                    
+                    ArrayList<String> event = events.get(j);
+                    if (event.get(1).equals("r")) {
+                        event.set(1, "d");
+                        dream--;
+                    }
                 }
+                
             }
-            else if (type.contains("S")) {
+            else if (type.equals("S")) {
                 //System.err.println("Processing scenerio...");
                 
                 ArrayList<String> scenes = new ArrayList<String>();
@@ -57,18 +64,23 @@ public class Dream {
                     scenes.add(io.getWord());
                 }
                 
-                io.println(feasible(scenes, dreamOffset));
+                //System.err.println("[dream offset] " + dreamEvents);
+                String s = feasible(scenes, dreamEvents, events.size());
+                io.println(s);
+                
+                //io.flush();
+                //System.out.println(s);
             }
         }
         
         //for (ArrayList<String> e : events) {
-        //    io.println(e.get(0) + " " + e.get(1));
+        //     io.println(e.get(0) + " " + e.get(1));
         //}
         io.close();
     }
     
     public static int getPos(String name) {
-        for (int i = eventCounter - 1; i >= 0; i--) {
+        for (int i = events.size() - 1; i >= 0; i--) {
             ArrayList<String> e = events.get(i);
             
             if (name.equals(e.get(0))) {
@@ -78,10 +90,10 @@ public class Dream {
         return -1;   
     }
     
-    public static String feasible(ArrayList<String> scenes, int dream) {
-        for (ArrayList<String> e : events) {
-            System.err.println(e.get(0) + " " + e.get(1));
-        }
+    public static String feasible(ArrayList<String> scenes, int dream, int s) {
+        //for (ArrayList<String> e : events) {
+        //    System.err.println(e.get(0) + " " + e.get(1));
+        //}
         
         int match = 0;
         
@@ -103,7 +115,8 @@ public class Dream {
                 if (position != -1) {
                     ArrayList event = events.get(position);
                     if (event.get(1).equals("r")) {
-                        if (dreamValue == -1 || position < dreamValue) {
+                       if (dreamValue == -1 || position < dreamValue) {
+                           
                             maxMatch = position > maxMatch ? position : maxMatch;
                             //System.err.println("[maxmatch] " + maxMatch);
                             match++;
@@ -119,12 +132,16 @@ public class Dream {
                     ArrayList event = events.get(position);
                     if (event.get(1).equals("r")) {
                         if (maxMatch == -1 || position > maxMatch) {
-                            dreamValue = position > dreamValue ? position : dreamValue;
+                            //System.err.println("[position, dreamvalue] " + position + ", " + dreamValue);
+                            if (dreamValue == -1) {
+                                dreamValue = position;
+                            }
+                            else {
+                                dreamValue = position < dreamValue ? position : dreamValue;
+                            }
+                            //dreamValue = position;
                             //System.err.println("[dreamvalue] " + dreamValue);
                             match++;
-                        }
-                        else {
-                            
                         }
                     }
                     else {
@@ -135,9 +152,21 @@ public class Dream {
         }
         
         //System.err.println("[match] " + match);
+        //System.err.println("[maxmatch] " + maxMatch);
         if (match == scenes.size()) {
+            //System.err.println("[dreamValue] " + dreamValue);
             if (dreamValue > -1) {
-                return events.size() - (dreamValue + dream) + " Just A Dream";
+                int existingDream = 0;
+                for (int i = events.size() - 1; i >= dreamValue; i--) {
+                    ArrayList<String> e = events.get(i);
+                    if (e.get(1).equals("d")) {
+                        existingDream++;
+                    }
+                }
+                
+                //System.err.println("[existingDream]" + existingDream);
+                int d = s - (dreamValue + existingDream);
+                return d + " Just A Dream";
             }
             else {
                 return "Yes";
