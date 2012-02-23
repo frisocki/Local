@@ -37,6 +37,7 @@ import java.io.PrintWriter;
 import java.io.OutputStream;
 
 class Kattio extends PrintWriter {
+    
     public Kattio(InputStream i) {
 	super(new BufferedOutputStream(System.out));
 	r = new BufferedReader(new InputStreamReader(i));
@@ -44,6 +45,10 @@ class Kattio extends PrintWriter {
     public Kattio(InputStream i, OutputStream o) {
 	super(new BufferedOutputStream(o));
 	r = new BufferedReader(new InputStreamReader(i));
+    }
+    
+    public BufferedReader getR() {
+        return r;
     }
 
     public boolean hasMoreTokens() {
