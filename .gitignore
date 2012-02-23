@@ -1,16 +1,6 @@
 
 .DS_Store
 
-spotify/java/src/3
+spotify/java/src/data
 
-spotify/java/src/4
-
-spotify/java/src/5
-
-spotify/java/src/6
-
-spotify/java/src/7
-
-spotify/java/src/8
-
-spotify/java/src/d
+spotify/java/src/*.class
