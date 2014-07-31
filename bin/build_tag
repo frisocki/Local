@@ -1,0 +1,217 @@
+#!/bin/bash
+
+cBlue=$'\e[036m'
+cClear=$'\e[0m'
+cGreen=$'\e[32m'
+cRed=$'\e[31m'
+
+PROJECT=$1
+
+PROJECT_VERSION=$2
+
+PROJECT_PATH=$3
+
+CORE_VERSION=$4
+
+JIRA=$5
+
+SPONSOR=$6
+
+CORE_BASE=$7
+
+if [ -z "$PROJECT" -o -z "$CORE_VERSION" -o -z "$JIRA" ]; then
+    echo "usage: $(basename $0) project project_verion project_path core_version jira_issue sponsor core_base
+
+E.G.
+
+	project:         TOLV
+	project_version: tolv-1_0_0
+	project_path:    trunk (branch)
+	core_Version:    core-1_2_2
+	jira_issue:      TOLV-25
+	sponsor:         otsuka, lilly, etc...
+	core_base:       trunk
+"
+    exit
+fi
+
+SVN_HOME=$HOME/mytrus/${SPONSOR}/$(echo ${PROJECT} | awk '{ print tolower($1) }')
+
+BASE_SVN="https://jira.mytrus.com/svn"
+CORE_PATH="CORE/mytrus"
+if [ -z "${CORE_BASE}" ]; then
+    CORE_BASE="trunk"
+fi
+
+function error
+{
+    /bin/echo "${cRed}["$(date +%r)"] info - $@${cClear}"
+    exit 1
+}
+
+function info
+{
+    /bin/echo "${cGreen}["$(date +%r)"] info - $@${cClear}"
+}
+
+function raw
+{
+    /bin/echo "${cBlue} $@${cClear}"
+}
+
+function get_next_version
+{
+    VERSION_PATH=$1
+    VERSION=$2
+
+    CURRENT_VERSION=$(svn list -v --depth immediates \
+${BASE_SVN}/${VERSION_PATH}/tags \
+| sort -rn \
+| head -10 \
+| awk '{print $6}')
+
+    if [ -z "$CURRENT_VERSION" ]; then
+       echo ${VERSION}-qa1
+       exit
+    fi
+
+    for tag in ${CURRENT_VERSION}
+    do
+        tag=$(echo $tag | sed 's/\/$//')
+
+        pattern="s/${VERSION}\-qa//"
+
+        increment=$(echo $tag | sed ${pattern})
+
+        if [ "${increment}" = "${tag}" ]; then
+            continue
+        fi
+
+        NEXT_VERSION="${VERSION}-qa"$(echo ${increment} + 1 | bc)
+
+        break
+    done
+
+    if [ ! -z "${NEXT_VERSION}" ]; then
+        echo ${NEXT_VERSION}
+    else
+       echo ${VERSION}-qa1
+    fi
+}
+
+info "Building ${PROJECT} using ${CORE_VERSION}"
+
+# Get next core version.
+
+info "Getting current core version ..."
+
+NEXT_CORE_VERSION=$(get_next_version ${CORE_PATH} ${CORE_VERSION})
+if [ -z "${NEXT_CORE_VERSION}" ]; then
+    error "Could not determine next version. Exiting ..."
+    exit
+fi
+
+# Tag Core
+
+info "Tagging core as ${NEXT_CORE_VERSION} from ${CORE_BASE}"
+
+raw "	svn copy \\
+	-m \"${JIRA} Tagging core as ${NEXT_CORE_VERSION} from ${CORE_BASE}\" \\
+	${BASE_SVN}/${CORE_PATH}/${CORE_BASE} \\
+	${BASE_SVN}/${CORE_PATH}/tags/${NEXT_CORE_VERSION}"
+
+# Branch project
+
+PROJECT_BASE=${PROJECT_PATH}
+
+info "Getting current project version [${PROJECT} ${PROJECT_VERSION}] ..."
+
+if [ -z "$(echo "${PROJECT_BASE}" | awk '/branches/ { print $1 }')" ]; then
+    NEXT_PROJECT_VERSION=$(get_next_version ${PROJECT} ${PROJECT_VERSION})
+
+    info "Branching project as ${NEXT_PROJECT_VERSION} from ${PROJECT}"
+
+    raw "	svn copy \\
+	-m \"${JIRA} Branching project as ${NEXT_PROJECT_VERSION} from ${PROJECT_BASE}\" \\
+	${BASE_SVN}/${PROJECT}/${PROJECT_BASE} \\
+	${BASE_SVN}/${PROJECT}/branches/${NEXT_PROJECT_VERSION}"
+
+    info "Checking out new branch ..."
+
+    raw "	cd ${SVN_HOME} && svn up --depth empty branches && svn up branches/${NEXT_PROJECT_VERSION}"
+
+    # Update composer.json
+
+    info "Updating composer.json ..."
+
+    CORE_VERSION_NUMBER=$(echo ${CORE_VERSION} | sed 's/core-//' | sed 's/\_/\./g') 
+
+    raw "	cd ${SVN_HOME}/branches/${NEXT_PROJECT_VERSION}/site && json -4 -I -f composer.json  -e \
+'this.require[\"mytrus/core\"] = \"${CORE_VERSION_NUMBER}\"; \
+core = this.repositories.filter(function( obj ) {return obj.type == "package" && obj.package.name == "mytrus/core"}); \
+if (core[0]) {core[0].package.version = \"${CORE_VERSION_NUMBER}\"; core[0].package.source.reference = \"tags/${NEXT_CORE_VERSION}\"}'"
+
+    #raw "	cd ${SVN_HOME}/branches/${NEXT_PROJECT_VERSION}/site && json -4 -I -f composer.json -e 'this.repositories[0].package.source.reference = \"tags/${NEXT_CORE_VERSION}\"'"
+    #raw "	cd ${SVN_HOME}/branches/${NEXT_PROJECT_VERSION}/site && json -4 -I -f composer.json -e 'this.repositories[0].package.version = \"${CORE_VERSION_NUMBER}\"'"
+
+    # Composer install
+
+    info "Running composer install ..."
+
+    raw "	cd ${SVN_HOME}/branches/${NEXT_PROJECT_VERSION}/site && composer.phar --no-dev --verbose install"
+
+    # Composer update
+
+    info "Running composer update ..."
+
+    raw "	cd ${SVN_HOME}/branches/${NEXT_PROJECT_VERSION}/site && composer.phar --no-dev --verbose update && svn status"
+
+    if [ $? != "0" ]; then
+        info "Adding the lock file ..."
+
+        raw "	svn add composer.lock"
+    fi
+
+    info "Commit composer updates ..."
+
+    raw "	svn commit -m '${JIRA} #comment *Code:* Updating composer.'"
+
+    info "Tagging project as ${NEXT_PROJECT_VERSION} ..."
+
+    raw "	svn copy \\
+	-m \"${JIRA} Tagging project as ${NEXT_PROJECT_VERSION} from branches/${NEXT_PROJECT_VERSION}\" \\
+	${BASE_SVN}/${PROJECT}/branches/${NEXT_PROJECT_VERSION} \\
+	${BASE_SVN}/${PROJECT}/tags/${NEXT_PROJECT_VERSION}"
+
+else
+    NEXT_PROJECT_VERSION=$(get_next_version ${PROJECT} ${PROJECT_VERSION})
+
+    raw " svn copy \\
+  -m \"${JIRA} Tagging project as ${NEXT_PROJECT_VERSION} from ${PROJECT_BASE}\" \\
+  ${BASE_SVN}/${PROJECT}/${PROJECT_BASE} \\
+  ${BASE_SVN}/${PROJECT}/tags/${NEXT_PROJECT_VERSION}"
+fi
+
+
+info "Checking out new tag ..."
+
+raw "	cd ${SVN_HOME} && svn up --depth empty tags && svn up tags/${NEXT_PROJECT_VERSION}"
+
+# Pod install
+
+info "Running pod install ..."
+
+raw "	cd ${SVN_HOME}/tags/${NEXT_PROJECT_VERSION}/mobile/ios/$(echo ${PROJECT} | awk '{ print tolower($1) }') && pod --verbose install"
+
+# App config update
+
+info "
+Update app-config.json with:
+* baseUrl
+
+Update App with:
+* bundle identifier
+* bundle name
+"
+
+# Tag project

@@ -1,0 +1,18 @@
+#!/bin/bash
+
+PROJECT=$1
+LIMIT=$2
+
+if [ -z "$PROJECT" ]; then
+  echo "usage: "$(basename $0)" project [limit]"
+  exit
+fi
+
+if [ -z "$LIMIT" ]; then
+  LIMIT=5
+fi
+
+svn list -v --depth immediates \
+https://jira.mytrus.com/svn/${PROJECT}/tags \
+| sort -rn \
+| head -${LIMIT}
