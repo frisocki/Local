@@ -16,8 +16,12 @@
 #  ---------------------------------------------------------------------------
 
 cClear='\e[0m'
-cDefault='\e[1m'
-cYellow='\e[33m'
+cDefault='\e[35m'
+cRed='\e[1;31m'
+cOrange='\e[31m'
+cYellow='\e[1;33m'
+cGreen='\e[1;32m'
+cBlue='\e[34m'
 
 #   -------------------------------
 #   1.  ENVIRONMENT CONFIGURATION
@@ -30,8 +34,21 @@ cYellow='\e[33m'
 
 #   Change Prompt
 #   ------------------------------------------------------------
-    export PS1="${cDefault}________________________________________________________________________________${cClear}\n| [\@] ${cDefault}\w${cClear} @ ${cYellow}\h${cClear} (\u) \n| => "
-    export PS2="| => "
+
+    # Set config variables first
+    GIT_PROMPT_ONLY_IN_REPO=0
+
+    GIT_PROMPT_THEME=Custom
+
+    GIT_PROMPT_START="${cDefault}________________________________________________________________________________${cClear}\n| ${cRed}[\@]${cClear} ${cOrange}\w${cClear} ${cYellow}@${cClear} ${cGreen}\h${cClear} ${cBlue}(\u)${cClear} \n|"
+
+    GIT_PROMPT_END=" | => "
+    if [ -f "$(brew --prefix)/opt/bash-git-prompt/share/gitprompt.sh" ]; then
+        source "$(brew --prefix)/opt/bash-git-prompt/share/gitprompt.sh"
+    fi
+
+    #export PS1="${cDefault}________________________________________________________________________________${cClear}\n| ${cRed}[\@]${cClear} ${cOrange}\w${cClear} ${cYellow}@${cClear} ${cGreen}\h${cClear} ${cBlue}(\u)${cClear} \n| => "
+    #export PS2="| => "
 
 #   Set Paths
 #   ------------------------------------------------------------
@@ -67,6 +84,10 @@ alias upc='svn up && svn up site/src/Mytrus/Core'
 alias kw='svn propset svn:keywords "Author Date HeadUrl Id Revision"'
 alias kwa="svn st | egrep '^(M|A)' | egrep '\.(h|m|strings|phtml|sql|php|sh)$' | awk '{print \$2}' | xargs -n 1 svn propset svn:keywords \"Author Date HeadUrl Id Revision\""
 
+# GIT
+alias gup="find . -type d -depth 1 -name \"my*\" | xargs -I {} -n 1 bash -c 'echo -n \"Updating {} ... \" && cd {} && git pull'"
+alias gst="find . -type d -depth 1 -name \"my*\" | xargs -I {} -n 1 bash -c 'echo -n \"Updating {} ... \" && cd {} && git st'"
+
 # Color diff:
 alias sd='svn diff -x -b -x -w -x -u --diff-cmd colordiff $@'
 alias sdp='svn diff -x -b -x -w -x -u --diff-cmd colordiff -r PREV $@'
@@ -78,7 +99,7 @@ alias mv='mv -iv'                           # Preferred 'mv' implementation
 alias mkdir='mkdir -pv'                     # Preferred 'mkdir' implementation
 alias ll='ls -FGlAhp'                       # Preferred 'ls' implementation
 alias less='less -FSRXc'                    # Preferred 'less' implementation
-cd() { builtin cd "$@"; ll; }               # Always list directory contents upon 'cd'
+d() { builtin cd "$@"; ll; }               # Always list directory contents upon 'cd'
 alias cd..='cd ../'                         # Go back 1 directory level (for fast typers)
 alias ..='cd ../'                           # Go back 1 directory level
 alias ...='cd ../../'                       # Go back 2 directory levels
