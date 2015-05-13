@@ -16,46 +16,26 @@
 #  ---------------------------------------------------------------------------
 
 cClear='\e[0m'
-cDefault='\e[35m'
-cRed='\e[1;31m'
-cOrange='\e[31m'
-cYellow='\e[1;33m'
-cGreen='\e[1;32m'
-cBlue='\e[34m'
+cDefault='\e[1m'
+cYellow='\e[33m'
+cGreen='\e[32m'
+c4='\e[34m'
+c5='\e[35m'
 
 #   -------------------------------
 #   1.  ENVIRONMENT CONFIGURATION
 #   -------------------------------
 
-#   Phing
-    export PHP_COMMAND=/usr/bin/php
-    export PHING_HOME=${HOME}/Documents/github/phing
-    export PHP_CLASSPATH=${PHING_HOME}/classes
-
 #   Change Prompt
 #   ------------------------------------------------------------
-
-    # Set config variables first
-    GIT_PROMPT_ONLY_IN_REPO=0
-
-    GIT_PROMPT_THEME=Custom
-
-    GIT_PROMPT_START="${cDefault}________________________________________________________________________________${cClear}\n| ${cRed}[\@]${cClear} ${cOrange}\w${cClear} ${cYellow}@${cClear} ${cGreen}\h${cClear} ${cBlue}(\u)${cClear} \n|"
-
-    GIT_PROMPT_END=" | => "
-    if [ -f "$(brew --prefix)/opt/bash-git-prompt/share/gitprompt.sh" ]; then
-        source "$(brew --prefix)/opt/bash-git-prompt/share/gitprompt.sh"
-    fi
-
-    #export PS1="${cDefault}________________________________________________________________________________${cClear}\n| ${cRed}[\@]${cClear} ${cOrange}\w${cClear} ${cYellow}@${cClear} ${cGreen}\h${cClear} ${cBlue}(\u)${cClear} \n| => "
-    #export PS2="| => "
+    export PS1="${cGreen}________________________________________________________________________________${cClear}\n| [\@] ${cGreen}\w${cClear} @ ${cYellow}\h${cClear} (\u) \n| => "
+    export PS2="| => "
 
 #   Set Paths
 #   ------------------------------------------------------------
     export PATH=/usr/local/bin:$PATH
     export PATH=/usr/local/opt/ruby/bin:$PATH
     export PATH=$HOME/bin:$PATH
-    export PATH=${PATH}:${PHING_HOME}/bin
 
 #   Set Default Editor (change 'Nano' to the editor of your choice)
 #   ------------------------------------------------------------
@@ -73,33 +53,23 @@ cBlue='\e[34m'
 #   export CLICOLOR=1
 #   export LSCOLORS=ExFxBxDxCxegedabagacad
 
+    eval $( dircolors -b /etc/DIR_COLORS.lightbgcolor )
+
 
 #   -----------------------------
 #   2.  MAKE TERMINAL BETTER
 #   -----------------------------
 
-# SVN
-alias upc='svn up'
-alias upc='svn up && svn up site/src/Mytrus/Core'
-alias kw='svn propset svn:keywords "Author Date HeadUrl Id Revision"'
-alias kwa="svn st | egrep '^(M|A)' | egrep '\.(h|m|strings|phtml|sql|php|sh)$' | awk '{print \$2}' | xargs -n 1 svn propset svn:keywords \"Author Date HeadUrl Id Revision\""
-
-# GIT
-alias gup="find . -type d -depth 1 -name \"my*\" | xargs -I {} -n 1 bash -c 'echo -n \"Updating {} ... \" && cd {} && git pull'"
-alias gst="find . -type d -depth 1 -name \"my*\" | xargs -I {} -n 1 bash -c 'echo -n \"Updating {} ... \" && cd {} && git st'"
-
-# Color diff:
+#Color diff:
 alias sd='svn diff -x -b -x -w -x -u --diff-cmd colordiff $@'
 alias sdp='svn diff -x -b -x -w -x -u --diff-cmd colordiff -r PREV $@'
-
-# MAC Vim
 
 alias cp='cp -iv'                           # Preferred 'cp' implementation
 alias mv='mv -iv'                           # Preferred 'mv' implementation
 alias mkdir='mkdir -pv'                     # Preferred 'mkdir' implementation
 alias ll='ls -FGlAhp'                       # Preferred 'ls' implementation
 alias less='less -FSRXc'                    # Preferred 'less' implementation
-d() { builtin cd "$@"; ll; }               # Always list directory contents upon 'cd'
+cd() { builtin cd "$@"; ll; }               # Always list directory contents upon 'cd'
 alias cd..='cd ../'                         # Go back 1 directory level (for fast typers)
 alias ..='cd ../'                           # Go back 1 directory level
 alias ...='cd ../../'                       # Go back 2 directory levels
@@ -150,7 +120,7 @@ alias make10mb='mkfile 10m ./10MB.dat'      # make10mb:     Creates a file of 10
 #   cdf:  'Cd's to frontmost window of MacOS Finder
 #   ------------------------------------------------------
     cdf () {
-        currFolderPath=$( /usr/bin/osascript <<"    EOT"
+        currFolderPath=$( /usr/bin/osascript <<EOT
             tell application "Finder"
                 try
             set currFolder to (folder of the front window as alias)
@@ -159,7 +129,7 @@ alias make10mb='mkfile 10m ./10MB.dat'      # make10mb:     Creates a file of 10
                 end try
                 POSIX path of currFolder
             end tell
-        EOT
+EOT
         )
         echo "cd to \"$currFolderPath\""
         cd "$currFolderPath"
@@ -339,3 +309,5 @@ httpHeaders () { /usr/bin/curl -I -L $@ ; }             # httpHeaders:      Grab
 #   e.g.: hdiutil create -size 10m 10MB.dmg
 #   the above create files that are almost all zeros - if random bytes are desired
 #   then use: ~/Dev/Perl/randBytes 1048576 > 10MB.dat
+if [ -f ~/.bash_git ] ; then source ~/.bash_git; fi
+if [ -f ~/.bash_aliases ] ; then source ~/.bash_aliases; fi

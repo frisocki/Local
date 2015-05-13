@@ -1,0 +1,41 @@
+[user]
+  name = 
+  email =
+[filter "media"]
+  required = true
+  clean = git media clean %f
+  smudge = git media smudge %f
+[color]
+  ui = true
+[color "diff"]
+  frag = 39
+  meta = white bold
+  new = green bold
+  old = red bold
+  plain = white bold
+[core]
+  excludesfile = /Users/jdurkee/.gitignore_global
+  autocrlf = input
+[difftool "sourcetree"]
+  cmd = opendiff \"$LOCAL\" \"$REMOTE\"
+  path =
+[mergetool "sourcetree"]
+  cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
+  trustExitCode = true
+[push]
+  default = simple
+[alias]
+  st = status
+  lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
+  un = reset HEAD --
+  m2 = merge --no-edit --no-ff develop
+  dev = checkout develop
+  rel = checkout release/2.0.0
+  dis = checkout --
+  rmtag = !sh -c 'git push origin :refs/tags/$1'
+[status]
+  submodulesummary = 1
+[filter "lfs"]
+  clean = git lfs clean %f
+  smudge = git lfs smudge %f
+  required = true

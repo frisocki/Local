@@ -1,5 +1,26 @@
 " Vim 
-set nocompatible
+set nocompatible               " be iMproved
+filetype off                   " required!
+
+set t_Co=256
+
+set rtp+=~/.vim/bundle/vundle/
+call vundle#rc()
+
+" let Vundle manage Vundle
+" required! 
+Bundle 'gmarik/vundle'
+
+Bundle 'altercation/vim-colors-solarized.git'
+
+Bundle 'flazz/vim-colorschemes'
+
+python from powerline.vim import setup as powerline_setup
+python powerline_setup()
+python del powerline_setup
+
+set laststatus=2 " Always display the statusline in all windows
+set noshowmode " Hide the default mode text (e.g. -- INSERT -- below the statusline)
 
 "set runtimepath=~/.vim,~/usr/share/vim/vim70,$VIMRUNTIME
  
@@ -10,7 +31,6 @@ set nocompatible
 " set guifont=-misc-fixed-medium-r-normal--14-130-75-75-c-70-iso8859-1
 set encoding=utf-8
 
-set t_Co=256
  
 set viminfo='10,\"100,:20,%,n~/.vim/viminfo
 
@@ -86,9 +106,14 @@ set mousehide
 " hi Cursor          ctermbg=green ctermfg=white
 " hi Keyword         ctermfg=green
  
+set background=dark
+
 "colorscheme brookstream256
-"colorscheme dw_green256
-colorscheme pyte256
+colorscheme dw_green256
+"colorscheme pyte256
+let g:solarized_termcolors=256
+"colorscheme solarized
+"colorscheme oceanlight
 
 "endif
 
@@ -141,8 +166,11 @@ nmap + <C-W>+
 nmap <C-J> <C-W>j<C-W>_
 nmap <C-K> <C-W>k<C-W>_
 
-" Arrow key support
-set t_ku =OA
-set t_kd =OB
-set t_kr =OC
-set t_kl =OD
+if ! has('gui_running')
+    set ttimeoutlen=10
+    augroup FastEscape
+        autocmd!
+        au InsertEnter * set timeoutlen=0
+        au InsertLeave * set timeoutlen=1000
+    augroup END
+endif
