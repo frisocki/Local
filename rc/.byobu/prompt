@@ -1,0 +1,12 @@
+#[ -r /usr/share/byobu/profiles/bashrc ] && . /usr/share/byobu/profiles/bashrc  #byobu-prompt#
+
+cClear='\[\e[0m\]'
+cDefault='\[\e[35m\]'
+cRed='\[\e[1;31m\]'
+cOrange='\[\e[31m\]'
+cYellow='\[\e[1;33m\]'
+cGreen='\[\e[1;32m\]'
+cBlue='\[\e[34m\]'
+
+export PS1="${cDefault}________________________________________________________________________________${cClear}\n| ${cRed}[\@]${cClear} ${cOrange}\w${cClear} ${cYellow}@${cClear} ${cGreen}\h${cClear} ${cBlue}(\u)${cClear} \n| => "
+#export PS2="| => "

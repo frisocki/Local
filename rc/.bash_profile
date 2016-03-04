@@ -15,27 +15,92 @@
 #
 #  ---------------------------------------------------------------------------
 
-cClear='\e[0m'
-cDefault='\e[1m'
-cYellow='\e[33m'
-cGreen='\e[32m'
-c4='\e[34m'
-c5='\e[35m'
+# Variables for terminal requests.
+[[ -t 2 ]] && { 
+    alt=$(      tput smcup  || tput ti      ) # Start alt display
+    ealt=$(     tput rmcup  || tput te      ) # End   alt display
+    hide=$(     tput civis  || tput vi      ) # Hide cursor
+    show=$(     tput cnorm  || tput ve      ) # Show cursor
+    save=$(     tput sc                     ) # Save cursor
+    load=$(     tput rc                     ) # Load cursor
+    bold=$(     tput bold   || tput md      ) # Start bold
+    stout=$(    tput smso   || tput so      ) # Start stand-out
+    estout=$(   tput rmso   || tput se      ) # End stand-out
+    under=$(    tput smul   || tput us      ) # Start underline
+    eunder=$(   tput rmul   || tput ue      ) # End   underline
+    reset=$(    tput sgr0   || tput me      ) # Reset cursor
+    blink=$(    tput blink  || tput mb      ) # Start blinking
+    italic=$(   tput sitm   || tput ZH      ) # Start italic
+    eitalic=$(  tput ritm   || tput ZR      ) # End   italic
+[[ $TERM != *-m ]] && { 
+    red=$(      tput setaf 1|| tput AF 1    )
+    green=$(    tput setaf 2|| tput AF 2    )
+    yellow=$(   tput setaf 3|| tput AF 3    )
+    blue=$(     tput setaf 4|| tput AF 4    )
+    magenta=$(  tput setaf 5|| tput AF 5    )
+    cyan=$(     tput setaf 6|| tput AF 6    )
+}
+    white=$(    tput setaf 7|| tput AF 7    )
+    default=$(  tput op                     )                                                                                                                                                                   
+    eed=$(      tput ed     || tput cd      )   # Erase to end of display
+    eel=$(      tput el     || tput ce      )   # Erase to end of line
+    ebl=$(      tput el1    || tput cb      )   # Erase to beginning of line
+    ewl=$eel$ebl                                # Erase whole line
+    draw=$(     tput -S <<< '   enacs
+                                smacs
+                                acsc
+                                rmacs' || { \
+                tput eA; tput as;
+                tput ac; tput ae;         } )   # Drawing characters
+    back=$'\b'
+} 2>/dev/null ||:
+
+cClear='\[\e[0m\]'
+cDefault='\[\e[35m\]'
+cRed='\[\e[1;31m\]'
+cOrange='\[\e[31m\]'
+cYellow='\[\e[1;33m\]'
+cGreen='\[\e[1;32m\]'
+cBlue='\[\e[34m\]'
+#cDefault="\[$default\]"
+#cRed="\[$red\]"
+#cOrange="\[$orange\]"
+#cYellow="\[$yellow\]"
+#cGreen="\[$green\]"
+#cBlue="\[$blue\]"
 
 #   -------------------------------
 #   1.  ENVIRONMENT CONFIGURATION
 #   -------------------------------
 
+#   Cocoapods
+    export COCOAPODS_DISABLE_DETERMINISTIC_UUIDS=true
+    export COCOAPODS_DISABLE_STATS=true
+
+#   Phing
+    export PHP_COMMAND=/usr/bin/php
+    export PHING_HOME=${HOME}/Documents/github/phing
+    export PHP_CLASSPATH=${PHING_HOME}/classes
+
 #   Change Prompt
 #   ------------------------------------------------------------
-    export PS1="${cGreen}________________________________________________________________________________${cClear}\n| [\@] ${cGreen}\w${cClear} @ ${cYellow}\h${cClear} (\u) \n| => "
-    export PS2="| => "
+
+    # Set config variables first
+    GIT_PROMPT_ONLY_IN_REPO=0
+
+    GIT_PROMPT_THEME=Custom
+
+    GIT_PROMPT_START="${cDefault}________________________________________________________________________________${cClear}\n| ${cRed}[\@]${cClear} ${cOrange}\w${cClear} ${cYellow}@${cClear} ${cGreen}\h${cClear} ${cBlue}(\u)${cClear} \n|"
+
+    export PS1="${cDefault}________________________________________________________________________________${cClear}\n| ${cRed}[\@]${cClear} ${cOrange}\w${cClear} ${cYellow}@${cClear} ${cGreen}\h${cClear} ${cBlue}(\u)${cClear} \n| => "
+    #export PS2="| => "
 
 #   Set Paths
 #   ------------------------------------------------------------
     export PATH=/usr/local/bin:$PATH
     export PATH=/usr/local/opt/ruby/bin:$PATH
     export PATH=$HOME/bin:$PATH
+    export PATH=${PATH}:${PHING_HOME}/bin
 
 #   Set Default Editor (change 'Nano' to the editor of your choice)
 #   ------------------------------------------------------------
@@ -53,23 +118,45 @@ c5='\e[35m'
 #   export CLICOLOR=1
 #   export LSCOLORS=ExFxBxDxCxegedabagacad
 
-    eval $( dircolors -b /etc/DIR_COLORS.lightbgcolor )
-
 
 #   -----------------------------
 #   2.  MAKE TERMINAL BETTER
 #   -----------------------------
 
-#Color diff:
+alias h='history'
+
+# SVN
+alias upc='svn up'
+alias upc='svn up && svn up site/src/Mytrus/Core'
+alias kw='svn propset svn:keywords "Author Date HeadUrl Id Revision"'
+alias kwa="svn st | egrep '^(M|A)' | egrep '\.(h|m|strings|phtml|sql|php|sh)$' | awk '{print \$2}' | xargs -n 1 svn propset svn:keywords \"Author Date HeadUrl Id Revision\""
+
+# GIT
+alias gup="find . -type d -depth 1 -name \"my*\" | xargs -I {} -n 1 bash -c 'printf \"Updating %-35s\" \"{} ... \" && cd {} && gpull'"
+alias gst="find . -type d -depth 1 -name \"my*\" | xargs -I {} -n 1 bash -c 'echo -n \"Updating {} ... \" && cd {} && git st'"
+alias gtg="find . -type d -depth 1 -name \"my*\" | xargs -I {} -n 1 bash -c 'echo -n \"{} ... \" && cd {} && git describe --tags \`git rev-list --tags --max-count=1\`'"
+
+alias ppush="pod repo push mytrus-spec-tacular --allow-warnings"
+ 
+
+alias rec="find . -type f -print0 | xargs -0 stat -f \"%m %N\" | sort -rn | head -10 | perl -n -e '@a=split(\" \", \$_); print scalar gmtime \$a[0], \" \$a[1]\n\"'"
+
+# Color diff:
 alias sd='svn diff -x -b -x -w -x -u --diff-cmd colordiff $@'
 alias sdp='svn diff -x -b -x -w -x -u --diff-cmd colordiff -r PREV $@'
+
+# Composer:
+alias compi='composer.phar --no-dev --verbose install'
+alias compu='composer.phar --no-dev --verbose update'
+
+# MAC Vim
 
 alias cp='cp -iv'                           # Preferred 'cp' implementation
 alias mv='mv -iv'                           # Preferred 'mv' implementation
 alias mkdir='mkdir -pv'                     # Preferred 'mkdir' implementation
 alias ll='ls -FGlAhp'                       # Preferred 'ls' implementation
 alias less='less -FSRXc'                    # Preferred 'less' implementation
-cd() { builtin cd "$@"; ll; }               # Always list directory contents upon 'cd'
+d() { builtin cd "$@"; ll; }               # Always list directory contents upon 'cd'
 alias cd..='cd ../'                         # Go back 1 directory level (for fast typers)
 alias ..='cd ../'                           # Go back 1 directory level
 alias ...='cd ../../'                       # Go back 2 directory levels
@@ -116,24 +203,6 @@ alias numFiles='echo $(ls -1 | wc -l)'      # numFiles:     Count of non-hidden 
 alias make1mb='mkfile 1m ./1MB.dat'         # make1mb:      Creates a file of 1mb size (all zeros)
 alias make5mb='mkfile 5m ./5MB.dat'         # make5mb:      Creates a file of 5mb size (all zeros)
 alias make10mb='mkfile 10m ./10MB.dat'      # make10mb:     Creates a file of 10mb size (all zeros)
-
-#   cdf:  'Cd's to frontmost window of MacOS Finder
-#   ------------------------------------------------------
-    cdf () {
-        currFolderPath=$( /usr/bin/osascript <<EOT
-            tell application "Finder"
-                try
-            set currFolder to (folder of the front window as alias)
-                on error
-            set currFolder to (path to desktop folder as alias)
-                end try
-                POSIX path of currFolder
-            end tell
-EOT
-        )
-        echo "cd to \"$currFolderPath\""
-        cd "$currFolderPath"
-    }
 
 #   extract:  Extract most know archives with one command
 #   ---------------------------------------------------------
@@ -309,5 +378,4 @@ httpHeaders () { /usr/bin/curl -I -L $@ ; }             # httpHeaders:      Grab
 #   e.g.: hdiutil create -size 10m 10MB.dmg
 #   the above create files that are almost all zeros - if random bytes are desired
 #   then use: ~/Dev/Perl/randBytes 1048576 > 10MB.dat
-if [ -f ~/.bash_git ] ; then source ~/.bash_git; fi
-if [ -f ~/.bash_aliases ] ; then source ~/.bash_aliases; fi
+_byobu_sourced=1 . /usr/bin/byobu-launch
