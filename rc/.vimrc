@@ -4,16 +4,22 @@ filetype off                   " required!
 
 set t_Co=256
 
+" set the runtime path to include Vundle and initialize
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
+" alternatively, pass a path where Vundle should install plugins
+"call vundle#begin('~/some/path/here')
 
-" let Vundle manage Vundle
-" required! 
-Bundle 'gmarik/vundle'
+" let Vundle manage Vundle, required
+Plugin 'gmarik/Vundle.vim'
 
-Bundle 'altercation/vim-colors-solarized.git'
+Plugin 'altercation/vim-colors-solarized.git'
 
-Bundle 'flazz/vim-colorschemes'
+Plugin 'flazz/vim-colorschemes'
+
+" All of your Plugins must be added before the following line
+call vundle#end()            " required
+filetype plugin indent on    " required
 
 python from powerline.vim import setup as powerline_setup
 python powerline_setup()
@@ -106,10 +112,11 @@ set mousehide
 " hi Cursor          ctermbg=green ctermfg=white
 " hi Keyword         ctermfg=green
  
-set background=dark
+"set background=light
 
+"colorscheme rakr-light
 "colorscheme brookstream256
-colorscheme dw_green256
+colorscheme sprinkles
 "colorscheme pyte256
 let g:solarized_termcolors=256
 "colorscheme solarized
